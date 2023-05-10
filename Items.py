@@ -1,13 +1,14 @@
 # Defines the Item class that will be used
 # to generate the items for the game.
-class Item():
-	def __init__(self, obj_type="", description_text="", pickup_text="", use_text=""):
-		self.obj_type = obj_type
+class Item:
+	def __init__(self, name="", description_text="", pickup_text="", use_text="", obj_type=""):
+		self.name = name
 		self.description_text = description_text
 		self.pickup_text = pickup_text
 		self.use_text = use_text
+		self.obj_type = obj_type
 	
-	# Returns the item's description text as the Item's string representatoin.
+	# Returns the item's description text as the Item's string representation.
 	def __str__(self):
 		return self.description_text
 	
