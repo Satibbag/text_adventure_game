@@ -17,7 +17,7 @@ class Room:
     """Base Room Object"""
 
     def __init__(self, room_name="", room_items=None, usable_items=None,
-                 allowed_movements=None, descriptions=None):
+                 allowed_movements=None, descriptions=None, unlocked=False):
         self.room_name = room_name  # The name of the room.
 
         if room_items is None:
@@ -42,6 +42,8 @@ class Room:
         self.allowed_movements = allowed_movements  # The possible valid movement directions
         self.descriptions = descriptions  # (room_items,usable_items) : description text
 
+        self.unlocked = unlocked
+
     def __str__(self):
         """Purely for debugging purposes."""
         description_strings = ""
@@ -60,6 +62,12 @@ class Room:
                f"Allowed Movements: {self.allowed_movements}\n" \
                f"Descriptions: {description_strings}\n" \
                f"Current Description: {current_description_text}"
+
+    def unlock(self, new_directions):
+        """Adds new possible directions to a room once a certain part of it is unlocked."""
+        if self.unlocked:
+            for direction in new_directions:
+                self.allowed_movements.append(direction)
 
     def get_item(self, player):
         """Gets an item from the room and adds it to the player's inventory."""

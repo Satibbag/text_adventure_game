@@ -10,12 +10,12 @@ from Player import player
 import os
 
 # Define the possible player actions.
-ACTIONS = ("quit",     # Quit the game
-           "save",     # Save the current game
-           "load",     # Load a previous game save
-           "get",      # Add an item to the player's inventory
-           "use",      # Use an item from the player's inventory
-           "move",     # Display the possible movement options
+ACTIONS = ("quit",  # Quit the game
+           "save",  # Save the current game
+           "load",  # Load a previous game save
+           "get",  # Add an item to the player's inventory
+           "use",  # Use an item from the player's inventory
+           "move",  # Display the possible movement options
            "inspect",  # Inspect an item in the current room
            "view inventory",  # Display the player's current inventory.
            "clear",  # Clears the terminal screen.
@@ -80,6 +80,13 @@ def main():
     global rooms
     global items
 
+    print("In this game, you play as a crew member aboard the space ship the \033[3mUSS Prospect\033[0m.")
+    print()
+    print("You wake up to the sound of alarms going off and warning lights flashing all over the ship.")
+    print("Suddenly, you hear an announcement over the PA system...")
+    print("\033[0;31mWARNING: We are trapped in the gravitational pull of a black hole! Destruction is imminent! "
+          "Get to the escape pods immediately!\033[0m")
+
     choice = None
     while choice != "quit":
         # Unpack the current room variables.
@@ -126,40 +133,180 @@ def main():
     print("Thanks for playing! :)")
 
 
+# --------------------------------------------------------------------------------------------------------------------
 rooms = {}
 
-key = Item("key",
-           "A golden key",
-           "You pick up the key.",
-           "You use the key to unlock the cellar door.",
+# Found In: Laboratory
+# Used In: Control Room
+keycard = Item("Keycard",
+               "An electronic keycard used to access locked areas.",
+               "You pickup the keycard. It shines with a metallic sheen.",
+               "You swipe the keycard, and the locked door clicks open.",
+               "key",
+               unlocked_directions=["north"])
+
+# Found In: Captain's Quarters
+# Used In: Security Office
+access_code = Item("Access Code",
+                   "A piece of paper with a code written on it.",
+                   "You find an access code.",
+                   "You enter the code and the door opens.",
+                   "key",
+                   unlocked_directions=["west"])
+
+# Found In: Security Room
+# Used In: Cargo Hold
+security_card = Item("Security Card",
+                     "A high-level security card used for accessing secured areas.",
+                     "You found a security card. It grants access to highly restricted zones.",
+                     "You slide the security card into the card reader, and the door unlocks.",
+                     "key",
+                     unlocked_directions=["west"])
+
+# Found In: Lounge
+# Used In: Medical Bay
+code_breaker = Item("Code Breaker",
+                    "A portable device capable of deciphering security codes.",
+                    "You found a code breaker. It can bypass security systems.",
+                    "With the code breaker, you easily decrypt the security code, granting access to the locked room",
+                    "key",
+                    unlocked_directions=["west"])
+
+# Found In: Observation Deck
+# Used In: Engineering Bay
+key = Item("Key",
+           "A standard looking golden key.",
+           "You find a standard key. How quaint.",
+           "You slide the key into the lock and turn it. The door unlocks with a click.",
            "key",
-           unlocked_directions=["down"])
+           unlocked_directions=["north"])
 
-stick = Item("stick",
-             "A brown stick",
-             "You pick up the stick.",
-             "You use the stick.")
+# Found In: Cargo Hold
+# Used In: Medical Bay
+password = Item("Password",
+                "A sticky note with a password sloppily scrawled onto it.",
+                "You fold up the sticky note and put it into your pocket.",
+                "You type the password into the computer. The slides open with a swish.",
+                "key",
+                unlocked_directions=["north"])
 
-items = {"key": key, "stick": stick}
+# Found In: Control Room
+# Used In: Laboratory
+cutter = Item("Plasma Cutter",
+              "A handheld tool that emits a high-energy beam capable of cutting through metal.",
+              "You acquired a plasma cutter. It can slice through sturdy materials.",
+              "You activate the plasma cutter, and its energy blade effortlessly slices through the metal box.",
+              "tool")
 
-# Entryway
-r = Room("Entryway", [items["key"]], [items["stick"]], ["east"])
-r.descriptions[(("key",), ("stick",))] = f"{r.room_name} - There's a mound of dirt."
-r.descriptions[(("key",), ())] = f"{r.room_name} - An uncovered key with scattered dirt around it and a used stick."
-r.descriptions[((), ())] = f"{r.room_name} - Scattered dirt and a used stick."
+# Found In: Laboratory
+# Used In: Captain's Quarters
+cabinet_key = Item("Cabinet Key",
+                   "A small key for a cabinet.",
+                   "You found a small key. It appears to go to a cabinet of some kind.",
+                   "You insert the key into the cabinet, unlocking the door and find a keycard inside.",
+                   "tool")
+
+# Found In: Lounge
+# Used In: Engineering Bay
+energy_cell = Item("Energy Cell",
+                   "A power source used to energize various devices.",
+                   "You acquired an energy cell. It can provide power to compatible devices.",
+                   "You insert the energy cell into the empty slot, and the device powers on.",
+                   "tool")
+
+items = {"keycard": keycard,
+         "access_code": access_code,
+         "security_card": security_card,
+         "code_breaker": code_breaker,
+         "key": key,
+         "password": password,
+         "cutter": cutter,
+         "cabinet_key": cabinet_key,
+         "energy_cell": energy_cell}
+
+# Lounge
+r = Room("Lounge", [items["code_breaker"], items["energy_cell"]], [], ["east"])
+r.descriptions[(("code_breaker", "energy_cell"), ())] = f"{r.room_name} \u2014 You look around the room and see a Code Breaker " \
+                                                        "and an Energy Cell."
+r.descriptions[(("code_breaker",), ())] = f"{r.room_name} \u2014 You look around the room and see an Energy Cell."
+r.descriptions[(("energy_cell",), ())] = f"{r.room_name} \u2014 You look around the room and see a Code Breaker."
+r.descriptions[((), ())] = f"{r.room_name} \u2014 It doesn't look like there's anything of use in here..."
 rooms[0, 0, 0] = r
 
-# Room 1
-r = Room("Room 1", [items["stick"]], [items["key"]], ["west"])
-r.descriptions[(("stick",), ("key",))] = f"{r.room_name} - There's a locked cellar door and a stick on the ground."
-r.descriptions[((), ("key",))] = f"{r.room_name} - There's a locked cellar door."
-r.descriptions[((), ())] = f"{r.room_name} - There's an unlocked cellar door."
-rooms[(1, 0, 0)] = r
+# Observation Deck
+r = Room("Observation Deck", [items["key"]], [], ["west", "north"])
+r.descriptions[(("key",), ())] = f"{r.room_name} \u2014 There's a large window looking out into space. All you can " \
+                                 f"really see through it though is the massive black hole that's pulling you in to your " \
+                                 f"imminent demise. How charming. You also see a key on the table in the corner."
+r.descriptions[((), ())] = f"{r.room_name} \u2014 There's a large window looking out into space. All you can really see " \
+                           f"through it though is the massive black hole that's pulling you in to your imminent demise. " \
+                           f"How charming."
+rooms[1, 0, 0] = r
 
-# Cellar
-r = Room("Cellar", allowed_movements=["up"])
-r.descriptions[((), ())] = f"{r.room_name} - You beat the game!"
-rooms[(1, 0, -1)] = r
+# Medical Bay
+r = Room("Medical Bay", [], [items["code_breaker"], items["password"]], ["south"])
+r.descriptions[((), ("code_breaker", "password"))] = f"{r.room_name} \u2014 Overturned or broken medical instruments " \
+                                                     f"and devices are strewn all over the room. There's a door straight " \
+                                                     f"ahead with a computer connected to it, and a door to your left " \
+                                                     f"with a note on the keypad that says \033[3m\"Forgot password to " \
+                                                     f"this door... Sorry for the inconvenience! :)\"\033[0m " \
+                                                     f"Oh well that's just great!"
+r.descriptions[((), ("password",))] = f"{r.room_name} \u2014 Overturned or broken medical instruments and devices are " \
+                                      f"strewn all over the room. There's a door straight ahead with a computer " \
+                                      f"connected to it, and an open door to your left."
+r.descriptions[((), ())] = f"{r.room_name} \u2014 Overturned or broken medical instruments and devices are strewn all " \
+                           f"over the room. There are open doorways straight "
+
+# Engineering Bay
+
+# Laboratory
+
+# Control Room
+
+# Captain's Quarters
+
+# Maintenance Bay
+
+# Security Office
+
+# ID Room
+
+# Cargo Hold
+
+# Escape Pods
+
+# key = Item("key",
+#            "A golden key",
+#            "You pick up the key.",
+#            "You use the key to unlock the cellar door.",
+#            "key",
+#            unlocked_directions=["down"])
+#
+# stick = Item("stick",
+#              "A brown stick",
+#              "You pick up the stick.",
+#              "You use the stick.")
+#
+# items = {"key": key, "stick": stick}
+#
+# # Entryway
+# r = Room("Entryway", [items["key"]], [items["stick"]], ["east"])
+# r.descriptions[(("key",), ("stick",))] = f"{r.room_name} - There's a mound of dirt."
+# r.descriptions[(("key",), ())] = f"{r.room_name} - An uncovered key with scattered dirt around it and a used stick."
+# r.descriptions[((), ())] = f"{r.room_name} - Scattered dirt and a used stick."
+# rooms[0, 0, 0] = r
+#
+# # Room 1
+# r = Room("Room 1", [items["stick"]], [items["key"]], ["west"])
+# r.descriptions[(("stick",), ("key",))] = f"{r.room_name} - There's a locked cellar door and a stick on the ground."
+# r.descriptions[((), ("key",))] = f"{r.room_name} - There's a locked cellar door."
+# r.descriptions[((), ())] = f"{r.room_name} - There's an unlocked cellar door."
+# rooms[(1, 0, 0)] = r
+#
+# # Cellar
+# r = Room("Cellar", allowed_movements=["up"])
+# r.descriptions[((), ())] = f"{r.room_name} - You beat the game!"
+# rooms[(1, 0, -1)] = r
 
 
 if __name__ == "__main__":
