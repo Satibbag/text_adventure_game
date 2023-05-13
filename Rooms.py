@@ -32,12 +32,12 @@ class Room:
         self.room_items = room_items  # Items that are in the room.
         self.room_items_names = []
         for item in self.room_items:
-            self.room_items_names.append(item.name)
+            self.room_items_names.append(item.name.lower())
 
         self.usable_items = usable_items  # Usable items
         self.usable_items_names = []
         for usable_item in self.usable_items:
-            self.usable_items_names.append(usable_item.name)
+            self.usable_items_names.append(usable_item.name.lower())
 
         self.allowed_movements = allowed_movements  # The possible valid movement directions
         self.descriptions = descriptions  # (room_items,usable_items) : description text
@@ -51,7 +51,7 @@ class Room:
             description_strings += f"\n{description_string} \u2014 {self.descriptions[description_string]}"
 
         current_description_key = tuple(self.room_items_names), tuple(self.usable_items_names)
-        current_description_text = self.descriptions.get(current_description_key, "Invalid room setting - something broke :(")
+        current_description_text = self.descriptions.get(current_description_key, "\033[31mInvalid room setting - something broke :(\033[0m")
 
         return "ROOM\n"\
                f"Room Name: {self.room_name}\n" \
@@ -72,9 +72,18 @@ class Room:
     def get_item(self, player):
         """Gets an item from the room and adds it to the player's inventory."""
         if self.room_items:
+            all_hidden = True
+            for item in self.room_items:
+                if not item.hidden:
+                    all_hidden = False
+            if all_hidden:
+                print("\033[31mThere aren't any items to pick up.\n\033[0m")
+                return
             print("What item would you like to pick up?")
             for item in self.room_items:
-                print(f"* {item.name.title()}")
+                if item.hidden:
+                    continue
+                print(f"\033[36m* {item.name.title()}\033[0m")
             picked_item = input("> ").lower().strip()
 
             if picked_item == "cancel":
@@ -83,9 +92,9 @@ class Room:
             if picked_item in self.room_items_names:
                 for item in self.room_items:
                     # Checks to see if the current item is the one the user inputted.
-                    if item.name == picked_item:
+                    if item.name.lower() == picked_item:
                         # Displays the pickup_text for the item that the player picked up.
-                        print(item.pickup_text)
+                        print(f"\033[0;32m{item.pickup_text}\033[0m")
                         # Adds the picked up item to the player's inventory.
                         player.inventory.append(item)
                         # Adds the picked up item's name to the player's inventory names list.
@@ -96,11 +105,11 @@ class Room:
                         self.room_items_names.remove(picked_item)
             else:
                 # Displays a message if the inputted item isn't a valid item.
-                print(f"Couldn't find the {picked_item} item in the room.")
+                print(f"\033[31mCouldn't find the {picked_item} item in the room.\033[0m")
 
         else:
             # Displays a message if there aren't any items to pickup in the room.
-            print("There aren't any items to pick up.\n")
+            print("\033[31mThere aren't any items to pick up.\n\033[0m")
 
     def use_item(self, player):
         """Use an item from the player's inventory."""
@@ -116,10 +125,14 @@ class Room:
                 if used_item in self.usable_items_names:
                     # Loops through the list of items in the player's inventory.
                     for item in player.inventory:
+                        # Checks to see if the player has won the game.
+                        if item.name.lower().strip() == "id card":
+                            player.won = True
+                            return
                         # Checks to see if the current item is the one the user inputted.
-                        if item.name == used_item:
+                        if item.name.lower().strip() == used_item:
                             # Displays the use_text for the item that the player used.
-                            print(item.use_text)
+                            print(f"\033[0;32m{item.use_text}\033[0m")
                             # Removes the used item from the player's inventory.
                             player.inventory.remove(item)
                             # Removes the used item's name from the list of names of items in
@@ -133,14 +146,14 @@ class Room:
                             item.special(self)
                 else:
                     # Displays a message if the inputted item isn't a valid usable item.
-                    print(f"The {used_item} item isn't a usable item.\n")
+                    print(f"\033[31mThe {used_item} item isn't a usable item in this room.\n\033[0m")
             else:
                 # Displays a message if the inputted item isn't a valid item in the player's inventory.
-                print(f"Could not find the {used_item} item in your inventory.")
+                print(f"\033[31mCould not find the {used_item} item in your inventory.\033[0m")
 
         else:
             # Displays a message if there aren't any items in the player's inventory.
-            print("There aren't any items in your inventory.\n")
+            print("\033[31mThere aren't any items in your inventory.\n\033[0m")
 
     def inspect_item(self, player):
         """Describe an item in the current room or the player's inventory."""
@@ -154,7 +167,7 @@ class Room:
             if self.room_items:
                 print("Which item in the room would you like to inspect?")
                 for item in self.room_items:
-                    print(f"* {item.name.title()}")
+                    print(f"\033[36m* {item.name.title()}\033[0m")
                 inspected_item = input("> ").lower().strip()
 
                 if inspected_item == "cancel":
@@ -164,16 +177,16 @@ class Room:
                     # Loops through the list of items in the room.
                     for item in self.room_items:
                         # Checks to see if the current item is the one the user inputted.
-                        if item.name == inspected_item:
+                        if item.name.lower().strip() == inspected_item:
                             # Displays the description_text for the item that the player inspected.
-                            print(item.description_text)
+                            print(f"\033[34m{item.description_text}\033[0m")
                 else:
                     # Displays a message if the inputted item isn't a valid item.
-                    print(f"Couldn't find the {inspected_item} item in the room.\n")
+                    print(f"\033[31mCouldn't find the {inspected_item} item in the room.\n\033[0m")
 
             else:
                 # Displays a message if there aren't any items to inspect in the room.
-                print("There aren't any items in the room to inspect.\n")
+                print("\033[31mThere aren't any items in the room to inspect.\n\033[0m")
 
         elif room_or_inventory == "inventory" or room_or_inventory == "i":
             if player.inventory:
@@ -188,25 +201,25 @@ class Room:
                     # Loops through the list of items in the player's inventory.
                     for item in player.inventory:
                         # Checks to see if the current item is the one the user inputted.
-                        if item.name == inspected_item:
+                        if item.name.lower().strip() == inspected_item:
                             # Displays the description_text for the item the player inspected.
-                            print(item.description_text)
+                            print(f"\033[34m{item.description_text}\033[0m")
                 else:
                     # Displays a message if the inputted item isn't a valid item.
-                    print(f"Couldn't find the {inspected_item} item in your inventory.\n")
+                    print(f"\033[31mCouldn't find the {inspected_item} item in your inventory.\n\033[0m")
 
             else:
                 # Displays a message if there aren't any items to inspect in the room.
-                print("There aren't any items in your inventory to inspect.\n")
+                print("\033[31mThere aren't any items in your inventory to inspect.\n\033[0m")
 
     def view_inventory(self, player):
         """Display the player's inventory as a bulleted list."""
         if player.inventory:
             print("Your current inventory:")
             for item in player.inventory:
-                print(f"* {item.name.title()}")
+                print(f"\033[36m* {item.name.title()}\033[0m")
         else:
-            print("There are no items currently in your inventory.")
+            print("\033[31mThere are no items currently in your inventory.\n\033[0m")
 
     def move(self, player):
         """Asks the player which way they would like to move."""
@@ -224,20 +237,21 @@ class Room:
             # the current room.
             if inputted_direction in self.allowed_movements:
                 # Informs the user which direction they moved in.
-                print(f"You move {inputted_direction.title()}.")
+                print(f"\033[34mYou move {inputted_direction.title()}.\033[0m")
                 # Updates the player's current position.
                 player.position = MOVEMENT[inputted_direction]
             else:
                 # Displays a message if the inputted direction isn't an allowed movement.
-                print(f"You can't move {inputted_direction} from here.\n")
+                print(f"\033[31mYou can't move {inputted_direction} from here.\n\033[0m")
         else:
             # Displays a message if the inputted direction isn't a valid movement direction.
-            print(f"'{inputted_direction}' isn't a valid direction.")
+            print(f"\033[31m'{inputted_direction}' isn't a valid direction.\n\033[0m")
 
     def describe(self):
         """Describes the room the player is in based off of the current state of the room (which items are in the room and which items in the room are usable)."""
         # Generates a key to represent the current state of the room.
         description_key = tuple(self.room_items_names), tuple(self.usable_items_names)
+        print(description_key)
         description_text = f"\033[4m\033[3;35m{self.descriptions.get(description_key, 'Invalid room setting - something broke :(')}\033[0m"
 
         # Returns a description of the room based off of the current state of the room.
